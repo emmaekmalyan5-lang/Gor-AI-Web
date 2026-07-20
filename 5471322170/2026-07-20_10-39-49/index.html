@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивный калькулятор</title>
+    <style>
+        :root {
+            --bg: #f9fafb;
+            --card: #fff;
+            --primary: #0069d9;
+            --danger: #dc3545;
+            --text: #212529;
+            --border: #ced4da;
+        }
+        * { box-sizing: border-box; margin:0; padding:0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+        .calculator {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            max-width: 420px;
+            width: 100%;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,.1);
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+            margin-bottom: 1rem;
+        }
+        .form-row > * {
+            flex: 1 1 0;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: .5rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        button {
+            cursor: pointer;
+            padding: .6rem 1rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            color: #fff;
+        }
+        .btn-primary { background: var(--primary); }
+        .btn-danger { background: var(--danger); }
+        .btn-primary:hover { background: #0053b3; }
+        .btn-danger:hover { background: #c82333; }
+        #result {
+            margin-top: .5rem;
+            font-weight: bold;
+            min-height: 1.5rem;
+        }
+        .history {
+            margin-top: 1.5rem;
+        }
+        .history h2 {
+            font-size: 1.2rem;
+            margin-bottom: .5rem;
+        }
+        .history-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-left: 0;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+        .history-list li {
+            padding: .4rem .6rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .history-list li:last-child { border-bottom: none; }
+        .clear-btn {
+            margin-top: .5rem;
+            width: 100%;
+        }
+        @media (max-width: 480px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="calculator">
+        <h1>Калькулятор</h1>
+        <div class="form-row">
+            <input type="text" id="num1" placeholder="Первое число">
+            <select id="operation">
+                <option value="+">+</option>
+                <option value="-">−</option>
+                <option value="*">×</option>
+                <option value="/">÷</option>
+                <option value="^">^</option>
+                <option value="%">%</option>
+            </select>
+            <input type="text" id="num2" placeholder="Второе число">
+        </div>
+        <button class="btn-primary" id="calcBtn">Вычислить</button>
+        <div id="result"></div>
+
+        <div class="history">
+            <h2>История (последние 10)</h2>
+            <ul id="historyList" class="history-list"></ul>
+            <button class="btn-danger clear-btn" id="clearHistory">Очистить историю</button>
+        </div>
+    </section>
+
+    <script>
+        const num1El = document.getElementById('num1');
+        const num2El = document.getElementById('num2');
+        const opEl   = document.getElementById('operation');
+        const btn    = document.getElementById('calcBtn');
+        const resultEl = document.getElementById('result');
+        const historyList = document.getElementById('historyList');
+        const clearBtn = document.getElementById('clearHistory');
+
+        const history = [];
+
+        function formatNumber(n) {
+            return Number.isInteger(n) ? n : n.toFixed(6).replace(/\.?0+$/,'');
+        }
+
+        function calculate(a, b, op) {
+            switch(op){
+                case '+': return a + b;
+                case '-': return a - b;
+                case '*': return a * b;
+                case '/':
+                    if (b === 0) throw new Error('Деление на ноль');
+                    return a / b;
+                case '^': return Math.pow(a, b);
+                case '%':
+                    if (b === 0) throw new Error('Деление на ноль');
+                    return a % b;
+                default: throw new Error('Неизвестная операция');
+            }
+        }
+
+        function addToHistory(entry){
+            history.unshift(entry);
+            if (history.length > 10) history.pop();
+            renderHistory();
+        }
+
+        function renderHistory(){
+            historyList.innerHTML = '';
+            history.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                historyList.appendChild(li);
+            });
+        }
+
+        btn.addEventListener('click', () => {
+            const a = parseFloat(num1El.value.trim());
+            const b = parseFloat(num2El.value.trim());
+            const op = opEl.value;
+
+            // валидация
+            if (isNaN(a) || isNaN(b)) {
+                resultEl.textContent = 'Ошибка: введите корректные числа.';
+                resultEl.style.color = 'var(--danger)';
+                return;
+            }
+
+            try {
+                const res = calculate(a, b, op);
+                const formatted = formatNumber(res);
+                resultEl.textContent = `Результат: ${formatted}`;
+                resultEl.style.color = 'var(--primary)';
+                addToHistory(`${formatNumber(a)} ${op} ${formatNumber(b)} = ${formatted}`);
+            } catch (e) {
+                resultEl.textContent = `Ошибка: ${e.message}`;
+                resultEl.style.color = 'var(--danger)';
+            }
+        });
+
+        clearBtn.addEventListener('click', () => {
+            history.length = 0;
+            renderHistory();
+        });
+    </script>
+</body>
+</html>
