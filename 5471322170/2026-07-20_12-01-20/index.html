@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Hello World</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #fafafa;
+    }
+    .center {
+      font-family: Arial, sans-serif;
+      font-size: 64px;
+      color: #333;
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+    .center:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="center">Hello World</div>
+  <script>
+    document.querySelector('.center').addEventListener('click', () => {
+      alert('Clicked!');
+    });
+  </script>
+</body>
+</html>
