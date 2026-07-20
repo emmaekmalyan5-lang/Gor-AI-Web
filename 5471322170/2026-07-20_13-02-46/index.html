@@ -1,0 +1,252 @@
+```html
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Ping‑Pong</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            background: #2c3e50;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #ecf0f1;
+        }
+        #game-container {
+            max-width: 900px;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+        #scoreboard {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        canvas {
+            background: #34495e;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            display: block;
+            margin: 0 auto;
+        }
+        #restartBtn {
+            margin-top: 15px;
+            padding: 8px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            background: #27ae60;
+            border: none;
+            color: #fff;
+            border-radius: 4px;
+        }
+        #restartBtn:hover {
+            background: #2ecc71;
+        }
+        #instructions {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        @media (max-width: 600px) {
+            canvas {
+                width: 100%;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="scoreboard">Игрок 1: 0 &nbsp;&nbsp;|&nbsp;&nbsp; Игрок 2: 0</div>
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        <button id="restartBtn">Restart</button>
+        <div id="instructions">
+            Управление: <strong>W / S</strong> – игрок 1, <strong>↑ / ↓</strong> – игрок 2
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const scoreboard = document.getElementById('scoreboard');
+        const restartBtn = document.getElementById('restartBtn');
+
+        const WIN_SCORE = 10;
+        const PADDLE_WIDTH = 10;
+        const PADDLE_HEIGHT = 80;
+        const BALL_RADIUS = 8;
+        const INITIAL_SPEED = 4;
+        const SPEED_INCREMENT = 0.5; // after each 5 points
+
+        class Paddle {
+            constructor(x, upKey, downKey) {
+                this.x = x;
+                this.y = (canvas.height - PADDLE_HEIGHT) / 2;
+                this.width = PADDLE_WIDTH;
+                this.height = PADDLE_HEIGHT;
+                this.speed = 6;
+                this.upKey = upKey;
+                this.downKey = downKey;
+                this.moveUp = false;
+                this.moveDown = false;
+            }
+            update() {
+                if (this.moveUp) this.y = Math.max(0, this.y - this.speed);
+                if (this.moveDown) this.y = Math.min(canvas.height - this.height, this.y + this.speed);
+            }
+            draw() {
+                ctx.fillStyle = "#ecf0f1";
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+        }
+
+        class Ball {
+            constructor() {
+                this.reset();
+            }
+            reset(direction = 1) {
+                this.x = canvas.width / 2;
+                this.y = canvas.height / 2;
+                const angle = (Math.random() * Math.PI / 4) - Math.PI / 8; // -22.5°..22.5°
+                this.speed = INITIAL_SPEED;
+                this.vx = direction * this.speed * Math.cos(angle);
+                this.vy = this.speed * Math.sin(angle);
+            }
+            update(p1, p2) {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Top/bottom collision
+                if (this.y - BALL_RADIUS <= 0 || this.y + BALL_RADIUS >= canvas.height) {
+                    this.vy = -this.vy;
+                }
+
+                // Paddle collisions
+                const collide = (p) => {
+                    return this.x - BALL_RADIUS < p.x + p.width &&
+                           this.x + BALL_RADIUS > p.x &&
+                           this.y + BALL_RADIUS > p.y &&
+                           this.y - BALL_RADIUS < p.y + p.height;
+                };
+                if (collide(p1) && this.vx < 0) {
+                    this.vx = -this.vx;
+                    this.x = p1.x + p1.width + BALL_RADIUS; // prevent sticking
+                } else if (collide(p2) && this.vx > 0) {
+                    this.vx = -this.vx;
+                    this.x = p2.x - BALL_RADIUS;
+                }
+            }
+            draw() {
+                ctx.fillStyle = "#e74c3c";
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, BALL_RADIUS, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        class Game {
+            constructor() {
+                this.p1 = new Paddle(20, 'KeyW', 'KeyS');
+                this.p2 = new Paddle(canvas.width - 20 - PADDLE_WIDTH, 'ArrowUp', 'ArrowDown');
+                this.ball = new Ball();
+                this.score = { p1: 0, p2: 0 };
+                this.isRunning = true;
+                this.speedIncreasedAt = 0; // track last total points when speed was increased
+                this.bindEvents();
+                this.loop = this.loop.bind(this);
+                requestAnimationFrame(this.loop);
+            }
+            bindEvents() {
+                window.addEventListener('keydown', (e) => {
+                    if (e.code === this.p1.upKey) this.p1.moveUp = true;
+                    if (e.code === this.p1.downKey) this.p1.moveDown = true;
+                    if (e.code === this.p2.upKey) this.p2.moveUp = true;
+                    if (e.code === this.p2.downKey) this.p2.moveDown = true;
+                });
+                window.addEventListener('keyup', (e) => {
+                    if (e.code === this.p1.upKey) this.p1.moveUp = false;
+                    if (e.code === this.p1.downKey) this.p1.moveDown = false;
+                    if (e.code === this.p2.upKey) this.p2.moveUp = false;
+                    if (e.code === this.p2.downKey) this.p2.moveDown = false;
+                });
+                restartBtn.addEventListener('click', () => this.restart());
+            }
+            update() {
+                if (!this.isRunning) return;
+
+                this.p1.update();
+                this.p2.update();
+                this.ball.update(this.p1, this.p2);
+
+                // Score handling
+                if (this.ball.x < 0) {
+                    this.score.p2++;
+                    this.afterScore(1);
+                } else if (this.ball.x > canvas.width) {
+                    this.score.p1++;
+                    this.afterScore(-1);
+                }
+
+                // Speed increase each 5 total points (once per threshold)
+                const totalPoints = this.score.p1 + this.score.p2;
+                if (totalPoints >= this.speedIncreasedAt + 5) {
+                    this.ball.speed += SPEED_INCREMENT;
+                    const angle = Math.atan2(this.ball.vy, this.ball.vx);
+                    const sign = Math.sign(this.ball.vx) || 1;
+                    this.ball.vx = sign * this.ball.speed * Math.cos(angle);
+                    this.ball.vy = this.ball.speed * Math.sin(angle);
+                    this.speedIncreasedAt = totalPoints;
+                }
+
+                if (this.score.p1 >= WIN_SCORE || this.score.p2 >= WIN_SCORE) {
+                    this.isRunning = false;
+                }
+            }
+            afterScore(direction) {
+                // Pause, then reset ball with proper direction
+                this.isRunning = false;
+                setTimeout(() => {
+                    this.ball.reset(direction);
+                    this.isRunning = true;
+                }, 800);
+            }
+            draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // Middle line
+                ctx.strokeStyle = "#bdc3c7";
+                ctx.setLineDash([10, 10]);
+                ctx.beginPath();
+                ctx.moveTo(canvas.width / 2, 0);
+                ctx.lineTo(canvas.width / 2, canvas.height);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                this.p1.draw();
+                this.p2.draw();
+                this.ball.draw();
+
+                // End game overlay
+                if (!this.isRunning && (this.score.p1 >= WIN_SCORE || this.score.p2 >= WIN_SCORE)) {
+                    ctx.fillStyle = "rgba(0,0,0,0.6)";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = "#fff";
+                    ctx.font = "48px sans-serif";
+                    ctx.textAlign = "center";
+                    const winner = this.score.p1 >= WIN_SCORE ? "Игрок 1" : "Игрок 2";
+                    ctx.fillText(`Победил ${winner}!`, canvas.width / 2, canvas.height / 2);
+                }
+
+                scoreboard.textContent = `Игрок 1: ${this.score.p1}   |   Игрок 2: ${this.score.p2}`;
+            }
+            loop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(this.loop);
+            }
+            restart() {
+                this.score
