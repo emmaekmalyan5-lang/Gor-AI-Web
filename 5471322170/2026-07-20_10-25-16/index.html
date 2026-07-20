@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Интерактивный калькулятор</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg: #f0f4f8;
+            --panel: #ffffff;
+            --btn-bg: #e0e7ff;
+            --btn-op-bg: #c7d2fe;
+            --btn-eq-bg: #6366f1;
+            --btn-text: #1e293b;
+            --btn-op-text: #1e293b;
+            --btn-eq-text: #ffffff;
+            --border-radius: 0.5rem;
+        }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .calculator {
+            background: var(--panel);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .display {
+            background: #1e293b;
+            color: #f1f5f9;
+            font-size: 2rem;
+            text-align: right;
+            padding: 1rem;
+            word-wrap: break-word;
+            min-height: 3rem;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            padding: 1rem;
+        }
+        button {
+            font-size: 1.25rem;
+            padding: 0.75rem;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #d1d5db;
+        }
+        .operator { background: var(--btn-op-bg); color: var(--btn-op-text); }
+        .operator:hover { background: #a5b4fc; }
+        .equals { background: var(--btn-eq-bg); color: var(--btn-eq-text); grid-column: span 2; }
+        .equals:hover { background: #4f46e5; }
+        .wide { grid-column: span 2; }
+        .history {
+            background: #f1f5f9;
+            max-height: 8rem;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .history-item {
+            margin: 0.2rem 0;
+        }
+        @media (max-width: 500px) {
+            .display { font-size: 1.5rem; }
+            button { font-size: 1rem; padding: 0.6rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="calculator">
+    <div id="display" class="display">0</div>
+    <div class="buttons">
+        <button class="wide" data-action="clear">C</button>
+        <button data-action="backspace">←</button>
+        <button class="operator" data-value="/">÷</button>
+
+        <button data-value="7">7</button>
+        <button data-value="8">8</button>
+        <button data-value="9">9</button>
+        <button class="operator" data-value="*">×</button>
+
+        <button data-value="4">4</button>
+        <button data-value="5">5</button>
+        <button data-value="6">6</button>
+        <button class="operator" data-value="-">−</button>
+
+        <button data-value="1">1</button>
+        <button data-value="2">2</button>
+        <button data-value="3">3</button>
+        <button class="operator" data-value="+">+</button>
+
+        <button data-value="(">(</button>
+        <button data-value="0">0</button>
+        <button data-value=")">)</button>
+        <button data-value=".">.</button>
+
+        <button class="equals" data-action="calculate">=</button>
+    </div>
+    <div id="history" class="history" hidden></div>
+</div>
+
+<script>
+(() => {
+    const display = document.getElementById('display');
+    const historyEl = document.getElementById('history');
+    let expression = '';
+    const history = [];
+
+    const allowedChars = /^[0-9+\-*/().\s]+$/;
+
+    const updateDisplay = () => {
+        display.textContent = expression || '0';
+    };
+
+    const addToHistory = (expr, result) => {
+        if (history.length >= 10) history.shift();
+        history.push({expr, result});
+        renderHistory();
+    };
+
+    const renderHistory = () => {
+        if (history.length === 0) {
+            historyEl.hidden = true;
+            return;
+        }
+        historyEl.hidden = false;
+        historyEl.innerHTML = history
+            .slice()
+            .reverse()
+            .map(item => `<div class="history-item"><strong>${item.expr}</strong> = ${item.result}</div>`)
+            .join('');
+    };
+
+    const sanitize = (str) => str.replace(/[^0-9+\-*/().\s]/g, '');
+
+    const evaluateExpression = (expr) => {
+        const clean = sanitize(expr);
+        if (!allowedChars.test(clean)) throw new Error('Недопустимый ввод');
+        // Prevent division by zero early
+        if (/\/\s*0(?!\d)/.test(clean)) throw new Error('Деление на ноль');
+        // Use Function constructor instead of eval
+        // eslint-disable-next-line no-new-func
+        return new Function(`return (${clean})`)();
+    };
+
+    const handleButton = (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const value = btn.dataset.value;
+        const action = btn.dataset.action;
+
+        if (action === 'clear') {
+            expression = '';
+        } else if (action === 'backspace') {
+            expression = expression.slice(0, -1);
+        } else if (action === 'calculate') {
+            try {
+                const result = evaluateExpression(expression);
+                addToHistory(expression, result);
+                expression = String(result);
+            } catch (err) {
+                expression = err.message;
+            }
+        } else if (value !== undefined) {
+            // Append value, avoid multiple leading zeros
+            if (expression === '0' && /^[0-9]$/.test(value)) {
+                expression = value;
+            } else {
+                expression += value;
+            }
+        }
+        updateDisplay();
+    };
+
+    document.querySelector('.buttons').addEventListener('click', handleButton);
+    updateDisplay();
+})();
+</script>
+</body>
+</html>
