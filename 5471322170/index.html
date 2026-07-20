@@ -1,316 +1,226 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Калькулятор</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-  :root {
-    --bg-light: #f5f5f5;
-    --bg-dark: #1e1e1e;
-    --txt-light: #212121;
-    --txt-dark: #e0e0e0;
-    --accent-light: #ff9800;
-    --accent-dark: #ffb74d;
-    --error-light: #d32f2f;
-    --error-dark: #ff8a80;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: var(--bg-dark);
-      --txt: var(--txt-dark);
-      --accent: var(--accent-dark);
-      --error: var(--error-dark);
-    }
-  }
-  @media (prefers-color-scheme: light) {
-    :root {
-      --bg: var(--bg-light);
-      --txt: var(--txt-light);
-      --accent: var(--accent-light);
-      --error: var(--error-light);
-    }
-  }
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: var(--bg);
-    color: var(--txt);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-  }
-  .calculator {
-    width: 320px;
-    max-width: 95vw;
-    background: var(--bg);
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  .display {
-    background: #000;
-    color: #0f0;
-    font-size: 2rem;
-    text-align: right;
-    padding: 0.5rem 0.75rem;
-    min-height: 3rem;
-    overflow-x: auto;
-    white-space: nowrap;
-    box-sizing: border-box;
-  }
-  .display.error {
-    background: var(--error);
-    color: #fff;
-  }
-  .buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.5rem;
-    padding: 0.5rem;
-  }
-  button {
-    font-size: 1.25rem;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 8px;
-    background: #e0e0e0;
-    color: #212121;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  button:active {
-    background: #bdbdbd;
-  }
-  .op {
-    background: var(--accent);
-    color: #fff;
-  }
-  .op:active {
-    background: #e68900;
-  }
-  @media (hover: hover) {
-    button:hover {
-      background: #d5d5d5;
-    }
-    .op:hover {
-      background: #e68900;
-    }
-  }
-  @media (max-width: 400px) {
-    .calculator {
-      font-size: 0.9rem;
-    }
-  }
-</style>
+    <meta charset="UTF-8">
+    <title>Калькулятор</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --bg: #f5f5f5;
+            --bg-dark: #212121;
+            --btn-bg: #ffffff;
+            --btn-bg-dark: #424242;
+            --btn-color: #212121;
+            --btn-color-dark: #e0e0e0;
+            --accent: #6200ea;
+            --accent-dark: #bb86fc;
+            --shadow: rgba(0,0,0,0.2);
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: var(--bg-dark);
+                --btn-bg: var(--btn-bg-dark);
+                --btn-color: var(--btn-color-dark);
+                --accent: var(--accent-dark);
+            }
+        }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--btn-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .calculator {
+            width: 100%;
+            max-width: 340px;
+            padding: 1rem;
+            background: var(--btn-bg);
+            border-radius: 0.8rem;
+            box-shadow: 0 4px 12px var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .display {
+            width: 100%;
+            height: 3rem;
+            font-size: 1.5rem;
+            text-align: right;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: #e0e0e0;
+            color: inherit;
+        }
+        .display:focus {
+            outline: none;
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+        button {
+            font-size: 1.2rem;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: var(--btn-bg);
+            color: var(--btn-color);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+        button:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+        button:active {
+            transform: scale(0.96);
+        }
+        .operator {
+            background: var(--accent);
+            color: #fff;
+        }
+        .operator:hover {
+            background: #7e3ff2;
+        }
+        .wide {
+            grid-column: span 2;
+        }
+        @media (max-width: 400px) {
+            .display {
+                height: 2.5rem;
+                font-size: 1.3rem;
+            }
+            button {
+                padding: 0.6rem;
+                font-size: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="calculator">
-  <div id="display" class="display">0</div>
-  <div class="buttons">
-    <button class="func" data-action="clear">C</button>
-    <button class="func" data-action="backspace">←</button>
-    <button class="func" data-action="sign">±</button>
-    <button class="op" data-action="operator" data-value="/">÷</button>
+    <div class="calculator">
+        <input type="text" readonly class="display" id="display" value="">
+        <div class="buttons">
+            <button class="wide" data-action="clear">C</button>
+            <button data-action="backspace">←</button>
+            <button class="operator" data-value="/">÷</button>
 
-    <button class="num" data-action="digit" data-value="7">7</button>
-    <button class="num" data-action="digit" data-value="8">8</button>
-    <button class="num" data-action="digit" data-value="9">9</button>
-    <button class="op" data-action="operator" data-value="*">×</button>
+            <button data-value="7">7</button>
+            <button data-value="8">8</button>
+            <button data-value="9">9</button>
+            <button class="operator" data-value="*">×</button>
 
-    <button class="num" data-action="digit" data-value="4">4</button>
-    <button class="num" data-action="digit" data-value="5">5</button>
-    <button class="num" data-action="digit" data-value="6">6</button>
-    <button class="op" data-action="operator" data-value="-">−</button>
+            <button data-value="4">4</button>
+            <button data-value="5">5</button>
+            <button data-value="6">6</button>
+            <button class="operator" data-value="-">−</button>
 
-    <button class="num" data-action="digit" data-value="1">1</button>
-    <button class="num" data-action="digit" data-value="2">2</button>
-    <button class="num" data-action="digit" data-value="3">3</button>
-    <button class="op" data-action="operator" data-value="+">+</button>
+            <button data-value="1">1</button>
+            <button data-value="2">2</button>
+            <button data-value="3">3</button>
+            <button class="operator" data-value="+">+</button>
 
-    <button class="num" data-action="digit" data-value="0" style="grid-column: span 2;">0</button>
-    <button class="num" data-action="decimal" data-value=".">.</button>
-    <button class="op" data-action="equals">=</button>
-  </div>
-</div>
+            <button data-value="0" class="wide">0</button>
+            <button data-value=".">.</button>
+            <button class="operator" data-action="equals">=</button>
+        </div>
+    </div>
 
-<script>
-(() => {
-  const displayEl = document.getElementById('display');
-  let firstOperand = null;
-  let operator = null;
-  let waitingSecond = false;
-  let errorState = false;
+    <script>
+        (function () {
+            const display = document.getElementById('display');
+            let expression = '';
 
-  const resetAll = () => {
-    firstOperand = null;
-    operator = null;
-    waitingSecond = false;
-    errorState = false;
-    updateDisplay('0');
-  };
+            const isOperator = ch => /[+\-*/]/.test(ch);
+            const safeEval = exp => {
+                // allow numbers, operators, decimal point, parentheses
+                if (!/^[0-9+\-*/.() ]+$/.test(exp)) throw new Error('Invalid characters');
+                // replace repeated operators (e.g., ++, --) which are not allowed
+                if (/[+\-*/]{2,}/.test(exp.replace(/\s+/g, ''))) throw new Error('Invalid syntax');
+                // evaluate
+                // eslint-disable-next-line no-new-func
+                return Function(`"use strict"; return (${exp})`)();
+            };
 
-  const updateDisplay = (value) => {
-    if (errorState) {
-      displayEl.classList.add('error');
-    } else {
-      displayEl.classList.remove('error');
-    }
-    displayEl.textContent = value;
-    // auto‑scroll
-    displayEl.scrollLeft = displayEl.scrollWidth;
-  };
+            const updateDisplay = () => {
+                display.value = expression || '0';
+            };
 
-  const inputDigit = (digit) => {
-    if (errorState) return resetAll();
-    if (waitingSecond) {
-      updateDisplay(digit);
-      waitingSecond = false;
-    } else {
-      const current = displayEl.textContent;
-      if (current === '0') {
-        updateDisplay(digit);
-      } else {
-        updateDisplay(current + digit);
-      }
-    }
-  };
+            const addChar = ch => {
+                // prevent two operators in a row
+                const last = expression.slice(-1);
+                if (isOperator(ch)) {
+                    if (!expression) return; // cannot start with operator
+                    if (isOperator(last)) {
+                        // replace previous operator
+                        expression = expression.slice(0, -1) + ch;
+                    } else {
+                        expression += ch;
+                    }
+                } else if (ch === '.') {
+                    // allow only one dot per number segment
+                    const parts = expression.split(/[+\-*/]/);
+                    const lastPart = parts[parts.length - 1];
+                    if (lastPart.includes('.')) return;
+                    expression += ch;
+                } else {
+                    expression += ch;
+                }
+                updateDisplay();
+            };
 
-  const inputDecimal = () => {
-    if (errorState) return resetAll();
-    const current = displayEl.textContent;
-    if (waitingSecond) {
-      updateDisplay('0.');
-      waitingSecond = false;
-      return;
-    }
-    if (!current.includes('.')) {
-      updateDisplay(current + '.');
-    }
-  };
+            const clearAll = () => {
+                expression = '';
+                updateDisplay();
+            };
 
-  const toggleSign = () => {
-    if (errorState) return resetAll();
-    const value = parseFloat(displayEl.textContent);
-    if (isNaN(value)) return;
-    updateDisplay((value * -1).toString());
-  };
+            const backspace = () => {
+                expression = expression.slice(0, -1);
+                updateDisplay();
+            };
 
-  const deleteLast = () => {
-    if (errorState) return resetAll();
-    const current = displayEl.textContent;
-    if (waitingSecond) return; // nothing to delete
-    if (current.length <= 1) {
-      updateDisplay('0');
-    } else {
-      updateDisplay(current.slice(0, -1));
-    }
-  };
+            const calculate = () => {
+                try {
+                    const result = safeEval(expression);
+                    expression = String(result);
+                } catch (e) {
+                    expression = 'Error';
+                }
+                updateDisplay();
+            };
 
-  const performCalculation = () => {
-    const secondOperand = parseFloat(displayEl.textContent);
-    if (operator && firstOperand != null && !isNaN(secondOperand)) {
-      let result;
-      switch (operator) {
-        case '+': result = firstOperand + secondOperand; break;
-        case '-': result = firstOperand - secondOperand; break;
-        case '*': result = firstOperand * secondOperand; break;
-        case '/':
-          if (secondOperand === 0) {
-            errorState = true;
-            updateDisplay('Error');
-            return;
-          }
-          result = firstOperand / secondOperand;
-          break;
-      }
-      // Trim unnecessary trailing zeros
-      result = Number.isFinite(result) ? (+result.toPrecision(12)).toString() : 'Error';
-      updateDisplay(result);
-      firstOperand = parseFloat(result);
-      operator = null;
-      waitingSecond = true;
-    }
-  };
+            document.querySelectorAll('.buttons button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const value = btn.getAttribute('data-value');
+                    const action = btn.getAttribute('data-action');
 
-  const handleOperator = (op) => {
-    if (errorState) return resetAll();
-    const inputValue = parseFloat(displayEl.textContent);
-    if (operator && waitingSecond) {
-      // change operator before second operand entered
-      operator = op;
-      return;
-    }
-    if (firstOperand == null) {
-      firstOperand = inputValue;
-    } else if (operator) {
-      // compute intermediate result
-      const prev = firstOperand;
-      const current = inputValue;
-      switch (operator) {
-        case '+': firstOperand = prev + current; break;
-        case '-': firstOperand = prev - current; break;
-        case '*': firstOperand = prev * current; break;
-        case '/':
-          if (current === 0) {
-            errorState = true;
-            updateDisplay('Error');
-            return;
-          }
-          firstOperand = prev / current; break;
-      }
-      updateDisplay(firstOperand.toString());
-    }
-    operator = op;
-    waitingSecond = true;
-  };
+                    if (action === 'clear') clearAll();
+                    else if (action === 'backspace') backspace();
+                    else if (action === 'equals') calculate();
+                    else if (value) addChar(value);
+                });
+            });
 
-  const handleEquals = () => {
-    if (errorState) return resetAll();
-    performCalculation();
-  };
-
-  document.querySelectorAll('button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const action = btn.dataset.action;
-      const value = btn.dataset.value;
-      switch (action) {
-        case 'digit':   inputDigit(value); break;
-        case 'decimal': inputDecimal(); break;
-        case 'sign':    toggleSign(); break;
-        case 'clear':   resetAll(); break;
-        case 'backspace': deleteLast(); break;
-        case 'operator': handleOperator(value); break;
-        case 'equals':  handleEquals(); break;
-      }
-    });
-  });
-
-  // Keyboard support
-  window.addEventListener('keydown', (e) => {
-    if (e.ctrlKey || e.metaKey) return;
-    const key = e.key;
-    if (/\d/.test(key)) {
-      inputDigit(key);
-    } else if (key === '.') {
-      inputDecimal();
-    } else if (key === '+' || key === '-' || key === '*' || key === '/') {
-      handleOperator(key);
-    } else if (key === 'Enter' || key === '=') {
-      e.preventDefault();
-      handleEquals();
-    } else if (key === 'Backspace') {
-      deleteLast();
-    } else if (key === 'Escape') {
-      resetAll();
-    } else if (key.toLowerCase() === 'c') {
-      resetAll();
-    }
-  });
-})();
-</script>
+            // Keyboard support
+            document.addEventListener('keydown', e => {
+                const key = e.key;
+                if (/[0-9]/.test(key)) addChar(key);
+                else if (key === '.') addChar('.');
+                else if (key === '+' ) addChar('+');
+                else if (key === '-') addChar('-');
+                else if (key === '*') addChar('*');
+                else if (key === '/' || key === '÷') addChar('/');
+                else if (key === 'Enter') { e.preventDefault(); calculate(); }
+                else if (key === 'Backspace') backspace();
+                else if (key === 'Escape') clearAll();
+            });
+        })();
+    </script>
 </body>
 </html>
