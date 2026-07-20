@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Cube Counter</title>
+<style>
+    body {
+        margin: 0;
+        background:#0099FF;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        min-height:100vh;
+        font-family:sans-serif;
+    }
+    #counter{
+        font-size:48px;
+        color:#fff;
+        margin-bottom:20px;
+    }
+    #game{
+        display:flex;
+        flex-wrap:wrap;
+        gap:15px;
+        justify-content:center;
+        max-width:600px;
+    }
+    .cube{
+        width:80px;
+        height:80px;
+        background:#FF4136;
+        color:#FFF;
+        font-size:24px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        cursor:pointer;
+        perspective:600px;
+    }
+    .cube.rotating{
+        animation:rotate 0.5s forwards;
+        pointer-events:none;
+    }
+    @keyframes rotate{
+        from{transform:rotateY(0deg);}
+        to{transform:rotateY(180deg);}
+    }
+</style>
+</head>
+<body>
+<div id="counter">0</div>
+<div id="game">
+    <div class="cube" data-value="1">A‑1</div>
+    <div class="cube" data-value="2">B‑2</div>
+    <div class="cube" data-value="3">C‑3</div>
+    <div class="cube" data-value="4">D‑4</div>
+    <div class="cube" data-value="5">E‑5</div>
+    <div class="cube" data-value="6">F‑6</div>
+</div>
+<script>
+    const counter = document.getElementById('counter');
+    document.querySelectorAll('.cube').forEach(cube => {
+        cube.addEventListener('click', () => {
+            if (cube.classList.contains('rotating')) return;
+            cube.classList.add('rotating');
+            const digit = parseInt(cube.dataset.value, 10);
+            cube.addEventListener('animationend', () => {
+                cube.classList.remove('rotating');
+                counter.textContent = +counter.textContent + digit;
+            }, { once: true });
+        });
+    });
+</script>
+</body>
+</html>
